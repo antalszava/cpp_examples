@@ -18,7 +18,7 @@ class S
         // we don't want.
     public:
         S(S const&)               = delete;
-        void operator=(S const&)  = delete;
+        void operator=(S const &)  = delete;
 
         // Note: Scott Meyers mentions in his Effective Modern
         //       C++ book, that deleted functions should generally
