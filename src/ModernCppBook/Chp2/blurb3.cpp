@@ -18,10 +18,8 @@ int main() {
   }
 
   
-
-
-
-
+  for (std::vector<int>::iterator element = vec.begin(); element != vec.end(); ++element)
+    std::cout << *element << std::endl;
 
 
 }
