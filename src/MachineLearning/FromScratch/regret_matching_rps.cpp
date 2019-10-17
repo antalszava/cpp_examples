@@ -84,8 +84,6 @@ void train(int iterations){
 
 int main(int argc, char *argv[])
 {
-
   train(10000);
-  
   return 0;
 }
