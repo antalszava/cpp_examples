@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
       test_1hot_labels[i][dataset.test_labels[i]] = 1;
     }
 
-    double alpha = 0.001;
+    double alpha = 0.005;
     int iterations = 300;
     int hidden_layer_size = 100;
     int pixels_per_image = 784;
@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
 
 
 
-    for (int k = 0; k < 300; k++){
+    for (int k = 0; k < iterations; k++){
       double error = 0.;
       int correct_count = 0;
       std::cout << "iteration " << k << std::endl;

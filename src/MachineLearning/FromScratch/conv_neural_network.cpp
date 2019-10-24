@@ -293,6 +293,34 @@ void print_sum(const std::vector<uint8_t> x, std::string label){
   std::cout << label << " sum = " << sum << std::endl;
 }
 
+
+std::vector<double>
+convolve_kernels_with_image
+(
+ std::vector<uint8_t> image,
+ std::vector<std::vector<double>> kernels,
+ int image_rows,
+ int image_cols,
+ int kernel_rows,
+ int kernel_cols
+ )
+{
+  std::vector<double> output(kernel.size()*(image_rows-kernel_rows)*(image_cols-kernel_cols));
+  for (int j = 0; j < image_rows-kernel_rows; j++){
+    for (int k = 0; k < image_cols-kernel_cols; k++){
+      for (int i = 0; i < kernels.size(); i++){
+	output[i*(image_rows-kernel_rows)*(image_cols-kernel_cols) + j*(image_rows-kernel_rows) + k] = 0.;
+	for (int l = 0; l < kernel_rows; l++)
+	  for (int m = 0; m < kernel_cols; m++)
+	    output[i*(image_rows-kernel_rows)*(image_cols-kernel_cols) + j*(image_rows-kernel_rows) + k]
+	      += kernels[i][l*kernel_rows + m]*unsigned(image[(j+l)*(image_rows-kernel_rows) + k + m]);
+      }
+    }
+  }  
+}
+
+
+
 int main(int argc, char *argv[])
 {
 
@@ -327,21 +355,16 @@ int main(int argc, char *argv[])
       test_1hot_labels[i][dataset.test_labels[i]] = 1;
     }
 
-    double alpha = 2;
-    int iterations = 300;
-    int hidden_layer_size = 100;
-    int pixels_per_image = 784;
-    int num_labels = 10;
 
-    std::vector<std::vector<double>> weights_0_1(pixels_per_image);
-    for (int i = 0; i < pixels_per_image; i++){
-      weights_0_1[i].resize(hidden_layer_size);
-      for (int j = 0; j < hidden_layer_size; j++){
-    	// weights_0_1[i][j] = 0.1*sin((i+j)*M_PI/4.);// 0.2*((double)rand()/(double)RAND_MAX)-0.1;
-    	weights_0_1[i][j] =  0.02*((double)rand()/(double)RAND_MAX)-0.01;
-	// w01_sum += weights_0_1[i][j];
-	}
-    }
+    // std::vector<std::vector<double>> weights_0_1(pixels_per_image);
+    // for (int i = 0; i < pixels_per_image; i++){
+    //   weights_0_1[i].resize(hidden_layer_size);
+    //   for (int j = 0; j < hidden_layer_size; j++){
+    // 	// weights_0_1[i][j] = 0.1*sin((i+j)*M_PI/4.);// 0.2*((double)rand()/(double)RAND_MAX)-0.1;
+    // 	weights_0_1[i][j] =  0.02*((double)rand()/(double)RAND_MAX)-0.01;
+    // 	// w01_sum += weights_0_1[i][j];
+    // 	}
+    // }
 
     std::vector<std::vector<double>> weights_1_2(hidden_layer_size);
     for (int i = 0; i < hidden_layer_size; i++){
@@ -352,9 +375,29 @@ int main(int argc, char *argv[])
 	}
     }
 
+    int kernel_rows = 3;
+    int kernel_cols = 3;
+    int num_kernels = 16;
+    std::vector<std::vector<double>> kernels(num_kernels);
+
+    for (int i = 0; i < num_kernels; i++){
+      kernels[i].resize(kernel_rows*kernel_cols);
+      for (int j = 0; j < kernel_rows*kernel_cols; j++){
+    	kernels[i][j] =  0.02*((double)rand()/(double)RAND_MAX)-0.01;
+      }
+    }
+    
     int num_batches = 10;
-    int batch_size = 100;
+    int batch_size = 128;
     int num_training_images = batch_size*10;
+
+
+    double alpha = 2;
+    int iterations = 300;
+    int hidden_layer_size = (28 - kernel_rows)*(28-kernel_cols)*num_kernels;
+    int pixels_per_image = 784;
+    int num_labels = 10;
+
 
     
     std::cout << std::setprecision(20);
@@ -384,9 +427,16 @@ int main(int argc, char *argv[])
       std::cout << "iteration " << k << std::endl;
       for (int batch = 0; batch < num_batches; batch++){
 
-
 	for (int i = 0; i < batch_size; i++){
-	  layer_1[i] = matrix_multiplication(dataset.training_images[i + batch*batch_size],weights_0_1);
+	  layer_1[i] = convolve_kernels_with_image(
+						   dataset.training_images[i + batch*batch_size],
+						   kernels,
+						   28,
+						   28,
+						   kernel_rows,
+						   kernel_cols
+						   );
+	  
 	}
 
 	for (int l= 0; l < batch_size; l++){
@@ -400,8 +450,6 @@ int main(int argc, char *argv[])
 	    dropout_mask[l][j] = (2.0*(double)rand() > (double)RAND_MAX);
 	    layer_1[l][j] *= dropout_mask[l][j]; //2 comes from the fact that the sum will be 1/2 after the dropout
 	    layer_1[l][j] *= 2; //2 comes from the fact that the sum will be 1/2 after the dropout
-
-
 	    }
 	  }	
 	}
@@ -439,9 +487,26 @@ int main(int argc, char *argv[])
 
 	  for (int l = 0; l < hidden_layer_size; l++){
 	    for(int j = 0; j < pixels_per_image; j++){
-	      weights_0_1[j][l] += alpha * unsigned(dataset.training_images[i + batch*batch_size][j])*layer_1_delta[i][l]/255.0;
+
+	      kernels[j][l] += alpha * unsigned(dataset.training_images[i + batch*batch_size][j])*layer_1_delta[i][l]/255.0;
+	      
 	    }
 	  }
+
+	  for (int j = 0; j < image_rows-kernel_rows; j++){
+	    for (int k = 0; k < image_cols-kernel_cols; k++){
+	      for (int i = 0; i < kernels.size(); i++){
+		output[i*(image_rows-kernel_rows)*(image_cols-kernel_cols) + j*(image_rows-kernel_rows) + k] = 0.;
+		for (int l = 0; l < kernel_rows; l++)
+		  for (int m = 0; m < kernel_cols; m++)
+		    output[i*(image_rows-kernel_rows)*(image_cols-kernel_cols) + j*(image_rows-kernel_rows) + k]
+		      += kernels[i][l*kernel_rows + m]*unsigned(image[(j+l)*(image_rows-kernel_rows) + k + m]);
+	      }
+	    }
+	  }  
+
+
+	  
 
 	}
 
@@ -452,16 +517,16 @@ int main(int argc, char *argv[])
       	std::cout << ", Train error = " << error/(double)num_training_images;
       	std::cout << ", Train acc = " << correct_count/(double)num_training_images;
 
-      	int test_count = 0;
-      	double test_error = 0.0;
-      	for (int t = 0; t < test_1hot_labels.size(); t++){
-      	  std::vector<double> pred = predict(dataset.test_images[t], weights_0_1, weights_1_2);
-      	  test_count += check_prediction(pred, test_1hot_labels[t]);
-      	  test_error += compute_error(pred, test_1hot_labels[t]);
-      	}
-      	std::cout << ", Test error = " << test_error/test_1hot_labels.size();
-      	std::cout << ", Test acc = " << test_count/(double)test_1hot_labels.size();	
-      	std::cout << "\n";
+      	// int test_count = 0;
+      	// double test_error = 0.0;
+      	// for (int t = 0; t < test_1hot_labels.size(); t++){
+      	//   std::vector<double> pred = predict(dataset.test_images[t], weights_0_1, weights_1_2);
+      	//   test_count += check_prediction(pred, test_1hot_labels[t]);
+      	//   test_error += compute_error(pred, test_1hot_labels[t]);
+      	// }
+      	// std::cout << ", Test error = " << test_error/test_1hot_labels.size();
+      	// std::cout << ", Test acc = " << test_count/(double)test_1hot_labels.size();	
+      	// std::cout << "\n";
       	std::cout.flush();
       }
     }
