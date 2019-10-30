@@ -4,7 +4,7 @@
 using namespace std;
 
 std::vector<std::vector<int>>
-get_combination(const & vector<int> candidates, const int last_index, int target, const vector<vector<int>> & output, int & found)
+get_combination(const std::vector<int> & candidates, const int last_index, int target, const vector<vector<int>> & output, int & found)
 {
   std::vector<std::vector<int>> new;
   found = 0; 
@@ -55,8 +55,11 @@ int main()
   std::vector<int> candidates = {2,3,6,7};
   int target = 7;
   std::vector<std::vector<int>> combos = combinationSum(candidates, target);
-  for (auto i : combos){
-    std::cout << i << std::endl;
+  for (auto v : combos){
+    for (auto i : v){
+      std::cout << i << " ,";
+    }
+    std::cout << std::endl;
   }
 
   
