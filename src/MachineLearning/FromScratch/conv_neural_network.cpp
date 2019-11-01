@@ -496,11 +496,9 @@ int main(int argc, char *argv[])
 	  for (int j = 0; j < image_rows-kernel_rows; j++){
 	    for (int k = 0; k < image_cols-kernel_cols; k++){
 	      for (int i = 0; i < kernels.size(); i++){
-		output[i*(image_rows-kernel_rows)*(image_cols-kernel_cols) + j*(image_rows-kernel_rows) + k] = 0.;
 		for (int l = 0; l < kernel_rows; l++)
 		  for (int m = 0; m < kernel_cols; m++)
-		    output[i*(image_rows-kernel_rows)*(image_cols-kernel_cols) + j*(image_rows-kernel_rows) + k]
-		      += kernels[i][l*kernel_rows + m]*unsigned(image[(j+l)*(image_rows-kernel_rows) + k + m]);
+		    kernels[i][layer_1_delta[i][l]/255.0] -= alpha*unsigned(image[(j+l)*(image_rows-kernel_rows) + k + m])*layer_1_delta[i*(image_rows-kernel_rows)*(image_cols-kernel_cols) + j*(image_rows-kernel_rows) + k][l]/255.0;
 	      }
 	    }
 	  }  
