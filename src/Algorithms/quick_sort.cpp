@@ -2,6 +2,34 @@
 #include <vector>
 #include <algorithm>
 
+int partition(int *a, int start, int end){
+
+  int pivot = a[end];
+  int P_index = start;
+
+  for (int i=start; i < end; i++){
+    if (a[i] <= pivot){
+      int t = a[i];
+      a[i] = a[P_index];
+      a[P_index] = t;
+      P_index++;
+    }
+  }
+  
+  int t=a[end];
+  a[end] = a[P_index];
+  a[P_index] = t;
+  return P_index;
+}
+
+void quick_sort(int *a, int start, int end){  
+  if (start < end){
+    int P_index = partition(a,start,end);
+    quick_sort(a,start,P_index-1);
+    quick_sort(a,P_index+1,end);
+  }
+}
+
 int cmp(const void* a, const void* b)
 {
   if(*(int*)a < *(int*)b)
@@ -29,3 +57,7 @@ int main(int argc, char**argv)
   else if(*argv[2]=='s')
     std::sort(vec.begin(), vec.end());
 }
+
+
+
+

@@ -22,6 +22,7 @@ int searchInsert(const vector<int>& nums, int target) {
       return mid;
     }    
   }
+  
   std::cout << mid << std::endl;
   if (mid == 0 && target > nums[0])
     return mid + 1;
