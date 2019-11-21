@@ -19,3 +19,10 @@ public:
         return true;
     }
 };
+
+
+int main(int argc, char *argv[])
+{
+  std::cout << Solution().validPalindrome("abbca") << std::endl;
+  return 0;
+}
