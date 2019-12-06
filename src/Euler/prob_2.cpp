@@ -19,5 +19,7 @@ int main(int argc, char *argv[])
       sum += b2;
     }
   }
+
+  std::cout << sum << std::endl;
   return 0;
 }
