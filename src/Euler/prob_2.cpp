@@ -11,7 +11,10 @@ int main(int argc, char *argv[])
   for (int i = 0; i < 4000000; i++){
     int temp = b2;
     b2 = b1 + b2;
-    b1 = b2;
+    b1 = temp;
+
+    cout << b2 << endl;
+    
     if (b2 >= 4000000)
       break;
 
